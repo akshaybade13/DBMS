@@ -1,0 +1,74 @@
+a) The bank manager has decided to activate all those accounts which were previously marked as inactive for performing no transaction in last 365 days. Write a PL/SQ block (using implicit cursor) to update the status of account, display an approximate message based on the no. of rows affected by the update. (Use of %FOUND, %NOTFOUND, %ROWCOUNT)
+
+Answer
+
+DECLARE
+    v_rows_updated NUMBER;
+BEGIN
+    -- Update the status of inactive accounts
+    UPDATE your_account_table
+    SET status = 'Active'
+    WHERE last_transaction_date < SYSDATE - 365;
+
+    -- Get the number of rows updated
+    v_rows_updated := SQL%ROWCOUNT;
+
+    -- Display a message based on the number of rows updated
+    IF v_rows_updated > 0 THEN
+        DBMS_OUTPUT.PUT_LINE('Updated ' || v_rows_updated || ' accounts to Active status.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('No accounts were updated.');
+    END IF;
+END;
+
+------------------------------------------------------------------------------------------------------------------
+
+b)Organization has decided to increase the salary of employees by 10% of existing salary, who are having salary less than average salary of organization, Whenever such salary updates takes place, a record for the same is maintained in the increment_salary table.
+
+Answer
+
+DECLARE
+    v_avg_salary NUMBER;
+BEGIN
+    -- Calculate the average salary of employees
+    SELECT AVG(salary) INTO v_avg_salary FROM employee_table;
+
+    -- Update the salary and maintain records in the increment_salary table
+    FOR emp_rec IN (SELECT employee_id, salary FROM employee_table WHERE salary < v_avg_salary) LOOP
+        -- Calculate the new salary
+        UPDATE employee_table
+        SET salary = emp_rec.salary * 1.10
+        WHERE employee_id = emp_rec.employee_id;
+
+        -- Insert a record in the increment_salary table
+        INSERT INTO increment_salary (employee_id, old_salary, new_salary, increment_date)
+        VALUES (emp_rec.employee_id, emp_rec.salary, emp_rec.salary * 1.10, SYSDATE);
+    END;
+
+    COMMIT;
+END;
+
+-------------------------------------------------------------------------------------------------------------------
+
+c) Write PL/SQL block using explicit cursor for following requirements: College has decided to mark all those students detained (D) who are having attendance less than 75%. Whenever such update takes place, a record for the same is maintained in the D_Stud table. create table stud21(roll number(4), att number(4), status varchar(1));
+
+Answer
+
+DECLARE
+    v_rows_updated NUMBER;
+BEGIN
+    -- Update the status of inactive accounts
+    UPDATE your_account_table
+    SET status = 'Active'
+    WHERE last_transaction_date < SYSDATE - 365;
+
+    -- Get the number of rows updated
+    v_rows_updated := SQL%ROWCOUNT;
+
+    -- Display a message based on the number of rows updated
+    IF v_rows_updated > 0 THEN
+        DBMS_OUTPUT.PUT_LINE('Updated ' || v_rows_updated || ' accounts to Active status.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('No accounts were updated.');
+    END IF;
+END;

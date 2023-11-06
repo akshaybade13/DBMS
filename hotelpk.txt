@@ -1,0 +1,60 @@
+//3.	The following tables form part of a database held in a relational DBMS: Hotel (HotelNo, Name, City) HotelNo is the primary key
+//Room (RoomNo, HotelNo, Type, Price)
+//Booking (HotelNo, GuestNo, DateFrom, DateTo, RoomNo)
+//Guest (GuestNo, GuestName, GuestAddress) GuestNo is primary key
+//Room contains room details for each hotel and (HotelNo, RoomNo) forms the primary key.Booking contains details of the bookings and the //primary key comprises (HotelNo, GuestNo and DateFrom)
+//Solve following queries by SQL
+1.	List full details of all hotels.
+	SELECT *
+FROM Hotel;
+2.	How many hotels are there?
+	SELECT COUNT(*) AS num_hotels
+FROM Hotel;
+3.	List the price and type of all rooms at the Grosvenor Hotel.
+SELECT RoomNo, Type, Price
+FROM Room
+WHERE HotelNo = (
+    SELECT HotelNo
+    FROM Hotel
+    WHERE Name = 'Grosvenor Hotel'
+);
+4.	List the number of rooms in each hotel.
+SELECT HotelNo, COUNT(*) AS num_rooms
+FROM Room
+GROUP BY HotelNo
+	ORDER BY num_rooms DESC;
+5.	Update the price of all rooms by 5%.
+	UPDATE Room
+SET Price = Price * 1.05;
+6.	List full details of all hotels in London.
+SELECT *
+FROM Hotel
+WHERE City = 'London';
+7.	What is the average price of a room?
+	SELECT AVG(Price) AS avg_price
+FROM Room;
+8.	List all guests currently staying at the Grosvenor Hotel.
+	SELECT GuestNo, GuestName, GuestAddress
+FROM Guest
+INNER JOIN Booking ON Guest.GuestNo = Booking.GuestNo
+WHERE Booking.HotelNo = (
+    SELECT HotelNo
+    FROM Hotel
+    WHERE Name = 'Grosvenor Hotel'
+	) AND Booking.DateFrom <= CURRENT_DATE AND Booking.DateTo >= CURRENT_DATE;
+9.	List the number of rooms in each hotel in London.
+SELECT HotelNo, COUNT(*) AS num_rooms
+FROM Room
+WHERE HotelNo IN (
+    SELECT HotelNo
+    FROM Hotel
+    WHERE City = 'London'
+)
+GROUP BY HotelNo
+ORDER BY num_rooms DESC;
+10.	Create one view on above database and query it.
+CREATE VIEW popular_hotels AS
+SELECT HotelNo, Name, City, COUNT(*) AS num_bookings
+FROM Booking
+GROUP BY HotelNo
+ORDER BY num_bookings DESC

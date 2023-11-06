@@ -1,0 +1,68 @@
+4. The following tables form part of a database held in a relational DBMS:
+Hotel (HotelNo, Name, City) HotelNo is primary key
+Room (RoomNo, HotelNo, Type, Price)
+Booking (HotelNo, GuestNo, DateFrom, DateTo, RoomNo)
+Guest (GuestNo, GuestName, GuestAddress) GuestNo is primary key
+Solve following queries by SQL
+1. What is the total revenue per night from all double rooms?
+
+SELECT SUM(Price) AS TotalRevenue
+FROM Room
+WHERE Type = 'Double';
+
+2. List the details of all rooms at the Grosvenor Hotel, including the name of
+the guest staying in the room, if the room is occupied.
+
+SELECT Room.RoomNo, Room.Type, Room.Price, Guest.GuestName
+FROM Room
+LEFT JOIN Booking ON Room.RoomNo = Booking.RoomNo
+AND Room.HotelNo = Booking.HotelNo
+WHERE Room.HotelNo = 1; -- Grosvenor Hotel
+
+
+3. What is the average number of bookings for each hotel in April?
+SELECT Hotel.HotelNo, AVG(COUNT(*)) AS AverageBookings
+FROM Booking
+JOIN Hotel ON Booking.HotelNo = Hotel.HotelNo
+WHERE DateFrom BETWEEN '2023-04-01' AND '2023-04-30'
+GROUP BY Hotel.HotelNo;
+
+4. Create index on one of the field and show is performance in query.
+CREATE INDEX idx_booking_roomno ON Booking (RoomNo);
+SELECT Booking.RoomNo, Booking.DateFrom, Booking.DateTo, Booking.GuestNo
+FROM Booking
+WHERE RoomNo = 101;
+
+
+5. List full details of all hotels.
+SELECT *
+FROM Hotel;
+
+6. List full details of all hotels in London.
+SELECT *
+FROM Hotel
+WHERE City = 'London';
+
+
+7. Update the price of all rooms by 5%.
+UPDATE Room
+SET Price = Price * 1.05;
+
+
+8. List the number of rooms in each hotel in London.
+SELECT Hotel.HotelNo, COUNT(*) AS NumRooms
+FROM Hotel
+JOIN Room ON Hotel.HotelNo = Room.HotelNo
+WHERE Hotel.City = 'London'
+GROUP BY Hotel.HotelNo;
+
+
+9. List all double or family rooms with a price below £40.00 per night, in
+ascending order of price.
+SELECT RoomNo, Type, Price
+FROM Room
+WHERE Type IN ('Double', 'Family')
+AND Price < 40.00
+ORDER BY Price ASC;
+
+

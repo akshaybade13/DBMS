@@ -1,0 +1,82 @@
+-- Create the Project table
+CREATE TABLE Project (
+    project_id INT PRIMARY KEY,
+    proj_name VARCHAR(255) NOT NULL,
+    chief_arch INT,
+    FOREIGN KEY (chief_arch) REFERENCES Employee(Emp_id)
+);
+
+-- Create the Employee table
+CREATE TABLE Employee (
+    Emp_id INT PRIMARY KEY,
+    Emp_name VARCHAR(255) NOT NULL
+);
+
+-- Create the Assigned-To table to represent the relationship between Project and Employee
+CREATE TABLE Assigned_To (
+    Project_id INT,
+    Emp_id INT,
+    PRIMARY KEY (Project_id, Emp_id),
+    FOREIGN KEY (Project_id) REFERENCES Project(project_id),
+    FOREIGN KEY (Emp_id) REFERENCES Employee(Emp_id)
+);
+
+-- Insert sample data into the Employee table
+INSERT INTO Employee (Emp_id, Emp_name)
+VALUES
+    (1, 'Dipesh Chavan'),
+    (2, 'Shantanu Pawar'),
+    (3, 'Akshay Bade'),
+    (4, 'Pumang Kirange');
+
+-- Insert sample data into the Project table
+INSERT INTO Project (project_id, proj_name, chief_arch)
+VALUES
+    (1, 'C353', 1),
+    (2, 'C354', 2),
+    (3, 'Database', 3),
+    (4, 'Web App', 4);
+
+-- Insert sample data into the Assigned-To table
+INSERT INTO Assigned_To (Project_id, Emp_id)
+VALUES
+    (1, 1),
+    (2, 2),
+    (3, 3),
+    (4, 4),
+    (1, 2),
+    (2, 3),
+    (3, 4),
+    (4, 1);
+
+SELECT e.Emp_id, e.Emp_name
+FROM Employee e
+JOIN Assigned_To a ON e.Emp_id = a.Emp_id
+JOIN Project p ON a.Project_id = p.project_id
+WHERE p.proj_name = 'C353';
+
+SELECT COUNT(e.Emp_id) AS Employee_Count
+FROM Employee e
+JOIN Assigned_To a ON e.Emp_id = a.Emp_id
+JOIN Project p ON a.Project_id = p.project_id
+WHERE p.proj_name = 'C353';
+
+SELECT e.Emp_id, e.Emp_name
+FROM Employee e
+JOIN Assigned_To a ON e.Emp_id = a.Emp_id
+JOIN Project p ON a.Project_id = p.project_id
+WHERE p.proj_name = 'Database';
+
+SELECT e.Emp_id, e.Emp_name
+FROM Employee e
+JOIN Assigned_To a ON e.Emp_id = a.Emp_id
+JOIN Project p ON a.Project_id = p.project_id
+WHERE p.proj_name IN ('C353', 'C354')
+GROUP BY e.Emp_id, e.Emp_name
+HAVING COUNT(DISTINCT p.proj_name) = 2;
+
+SELECT e.Emp_id
+FROM Employee e
+LEFT JOIN Assigned_To a ON e.Emp_id = a.Emp_id
+LEFT JOIN Project p ON a.Project_id = p.project_id
+WHERE p.proj_name IS NULL OR p.proj_name <> 'C453';

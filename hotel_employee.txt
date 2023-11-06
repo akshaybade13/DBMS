@@ -1,0 +1,106 @@
+-- Create the Employee table
+CREATE TABLE Employee (
+    emp_no INT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    skill VARCHAR(255),
+    pay_rate DECIMAL(10, 2) NOT NULL
+);
+
+-- Create the Posit table
+CREATE TABLE Posit (
+    posting_no INT PRIMARY KEY,
+    skill VARCHAR(255) NOT NULL
+);
+
+-- Create the Duty_allocation table
+CREATE TABLE Duty_allocation (
+    posting_no INT,
+    emp_no INT,
+    day DATE,
+    shift VARCHAR(255),
+    PRIMARY KEY (posting_no, emp_no, day),
+    FOREIGN KEY (posting_no) REFERENCES Posit(posting_no),
+    FOREIGN KEY (emp_no) REFERENCES Employee(emp_no)
+);
+
+-- Insert sample data into the Employee table
+INSERT INTO Employee (emp_no, name, skill, pay_rate)
+VALUES
+    (123461, 'Dipesh Chavan', 'Chef', 25.00),
+    (123462, 'Prakhar Pandey', 'Waiter', 15.00),
+    (123463, 'Pumang Kirange', 'Chef', 28.00),
+    (123464, 'xyz', 'Waiter', 16.50),
+    (123465, 'Aman Shaikh', 'Manager', 20.50);
+
+-- Insert sample data into the Posit table
+INSERT INTO Posit (posting_no, skill)
+VALUES
+    (1, 'Chef'),
+    (2, 'Waiter'),
+    (3, 'Manager');
+
+-- Insert sample data into the Duty_allocation table
+INSERT INTO Duty_allocation (posting_no, emp_no, day, shift)
+VALUES
+    (1, 123461, '1986-04-01', 'Morning'),
+    (1, 123461, '2023-04-02', 'Evening'),
+    (1, 123461, '2023-04-03', 'Morning'),
+    (2, 123462, '2023-04-01', 'Evening'),
+    (2, 123462, '2023-04-02', 'Evening'),
+    (2, 123463, '2023-04-02', 'Morning'),
+    (3, 123464, '2023-04-01', 'Morning');
+
+SELECT *
+FROM Duty_allocation
+WHERE emp_no = 123461
+    AND EXTRACT(YEAR_MONTH FROM day) = 198604;
+
+
+SELECT day, shift
+FROM Duty_allocation
+WHERE emp_no = (SELECT emp_no FROM Employee WHERE name = 'xyz');
+
+SELECT emp_no, name
+FROM Employee
+WHERE pay_rate >= (SELECT pay_rate FROM Employee WHERE name = 'xyz');
+
+SELECT emp_no, name, pay_rate
+FROM Employee
+WHERE emp_no < 123460
+    AND pay_rate > ANY (SELECT pay_rate FROM Employee WHERE emp_no >= 123460);
+
+
+SELECT e.name
+FROM Employee e , Posit p
+WHERE e.skill = p.skill and
+e.skill = 'Chef'
+
+
+SELECT emp_no, name, pay_rate
+FROM Employee
+WHERE pay_rate = (SELECT MIN(pay_rate) FROM Employee);
+
+SELECT emp_no
+FROM Duty_allocation
+GROUP BY emp_no
+HAVING COUNT(DISTINCT day) >= 2;
+
+
+SELECT e.name
+FROM Employee e
+WHERE e.emp_no IN (
+    SELECT d.emp_no
+    FROM Duty_allocation d
+    INNER JOIN Posit p ON d.posting_no = p.posting_no
+    WHERE p.skill = 'Chef'
+);
+
+
+SELECT name
+FROM Employee
+WHERE emp_no NOT IN (SELECT DISTINCT emp_no FROM Duty_allocation);
+
+
+SELECT shift, COUNT(DISTINCT emp_no) as employee_count
+FROM Duty_allocation
+GROUP BY shift;

@@ -1,0 +1,76 @@
+a) Write an SQL code block these raise a user defined exception where business rule is voilated. BR for client_ master table specifies when the value of bal_due field is less than 0 handle the exception.
+
+Answer
+
+DECLARE
+    bal_due_value NUMBER;
+BEGIN
+    -- Retrieve the bal_due value for the specific client
+    SELECT bal_due INTO bal_due_value FROM client_master WHERE client_id = :client_id;
+    
+    -- Check if the business rule is violated
+    IF bal_due_value < 0 THEN
+        -- Raise a user-defined exception
+        RAISE_APPLICATION_ERROR(-20001, 'Business Rule Violation: Balance Due is less than 0');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle any other exceptions here
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+
+--------------------------------------------------------------------------------------------------------------------
+
+b) Write an SQL code block
+Borrow(Roll_no, Name, DateofIssue, NameofBook, Status)
+Fine(Roll_no,Date,Amt)
+Accept roll_no & name of book from user. Check the number of days (from date of issue), if days are between 15 to 30 then fine amount will be Rs 5per day. If no. of days>30, per day fine will be Rs 50 per day & for days less than 30, Rs. 5 per day. After submitting the book, status will change from I to R. If condition of fine is true, then details will be stored into fine table. Also handles the exception by named exception handler or user define exception handler.
+
+Answer
+
+DECLARE
+    v_roll_no NUMBER;
+    v_name_of_book VARCHAR2(100);
+    v_date_of_issue DATE;
+    v_current_date DATE := SYSDATE;
+    v_fine_amt NUMBER;
+BEGIN
+    -- Accept roll_no and name_of_book from the user
+    v_roll_no := :roll_no;
+    v_name_of_book := :name_of_book;
+
+    -- Retrieve the date of issue for the book
+    SELECT DateofIssue INTO v_date_of_issue FROM Borrow WHERE Roll_no = v_roll_no AND NameofBook = v_name_of_book;
+
+    -- Calculate the number of days overdue
+    DECLARE
+        v_days_overdue NUMBER;
+    BEGIN
+        v_days_overdue := v_current_date - v_date_of_issue;
+        
+        -- Calculate fine amount based on the number of days
+        IF v_days_overdue >= 15 AND v_days_overdue <= 30 THEN
+            v_fine_amt := 5 * v_days_overdue;
+        ELSIF v_days_overdue > 30 THEN
+            v_fine_amt := 50 * v_days_overdue;
+        ELSE
+            v_fine_amt := 0;
+        END IF;
+    END;
+
+    -- Update the status to 'R'
+    UPDATE Borrow SET Status = 'R' WHERE Roll_no = v_roll_no AND NameofBook = v_name_of_book;
+
+    -- Store fine details in the Fine table
+    INSERT INTO Fine (Roll_no, Date, Amt) VALUES (v_roll_no, v_current_date, v_fine_amt);
+
+    -- Commit the transaction
+    COMMIT;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Book not found or record not found.');
+    WHEN OTHERS THEN
+        -- Handle any other exceptions here
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;

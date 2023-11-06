@@ -1,0 +1,63 @@
+a) Write a update, delete trigger on clientmstr table. The System should keep track of the records that ARE BEING updated or deleted. The old value of updated or deleted records should be added in audit_trade table. (separate implementation using both row and statement triggers).
+
+Answer
+
+CREATE OR REPLACE TRIGGER clientmstr_update_row_trigger
+BEFORE UPDATE ON clientmstr
+FOR EACH ROW
+BEGIN
+    -- Insert the old values into the audit_trade table
+    IF :OLD.client_id IS NOT NULL THEN
+        INSERT INTO audit_trade (client_id, old_value, action)
+        VALUES (:OLD.client_id, :OLD.bal_due, 'UPDATE');
+    END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER clientmstr_delete_row_trigger
+BEFORE DELETE ON clientmstr
+FOR EACH ROW
+BEGIN
+    -- Insert the old values into the audit_trade table before deletion
+    IF :OLD.client_id IS NOT NULL THEN
+        INSERT INTO audit_trade (client_id, old_value, action)
+        VALUES (:OLD.client_id, :OLD.bal_due, 'DELETE');
+    END IF;
+END;
+/
+
+
+-----------------------------------------------------------------------------------------------------------------
+
+b) Write a before trigger for Insert, update event considering following requirement: Emp(e_no, e_name, salary) I) Trigger action should be initiated when salary is tried to be inserted is less than Rs. 50,000/- II) Trigger action should be initiated when salary is tried to be updated for value less than Rs. 50,000/- Action should be rejection of update or Insert operation by displaying appropriate error message. Also the new values expected to be inserted will be stored in new table Tracking(e_no, salary).
+
+Answer
+
+CREATE OR REPLACE TRIGGER emp_insert_update_trigger
+BEFORE INSERT OR UPDATE ON Emp
+FOR EACH ROW
+DECLARE
+    v_new_salary NUMBER;
+BEGIN
+    IF INSERTING THEN
+        -- For INSERT operation, check if the salary is less than Rs. 50,000
+        IF :NEW.salary < 50000 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Salary cannot be less than Rs. 50,000');
+        ELSE
+            -- Store new values in the Tracking table
+            INSERT INTO Tracking (e_no, salary) VALUES (:NEW.e_no, :NEW.salary);
+        END IF;
+    ELSIF UPDATING THEN
+        -- For UPDATE operation, check if the updated salary is less than Rs. 50,000
+        v_new_salary := NVL(:NEW.salary, :OLD.salary);
+        IF v_new_salary < 50000 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Salary cannot be updated to less than Rs. 50,000');
+        ELSE
+            -- Store new values in the Tracking table
+            INSERT INTO Tracking (e_no, salary) VALUES (:NEW.e_no, v_new_salary);
+        END IF;
+    END IF;
+END;
+/
+
+

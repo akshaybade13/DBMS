@@ -1,0 +1,62 @@
+5. The following tables form part of a database held in a relational DBMS:
+Hotel (HotelNo, Name, City) HotelNo is the primary key
+Room (RoomNo, HotelNo, Type, Price)
+Booking (HotelNo, GuestNo, DateFrom, DateTo, RoomNo)
+Guest (GuestNo, GuestName, GuestAddress)
+Solve following queries by SQL
+
+1. List full details of all hotels.
+SELECT * FROM Hotel;
+
+2. How many hotels are there?
+SELECT COUNT(*) AS NumHotels FROM Hotel;
+
+3. List the price and type of all rooms at the Grosvenor Hotel.
+SELECT RoomNo, Type, Price
+FROM Room
+WHERE HotelNo = 1; -- Grosvenor Hotel
+
+4. List the number of rooms in each hotel
+SELECT Hotel.HotelNo, COUNT(*) AS NumRooms
+FROM Hotel
+JOIN Room ON Hotel.HotelNo = Room.HotelNo
+GROUP BY Hotel.HotelNo;
+
+5. List all guests currently staying at the Grosvenor Hotel.
+SELECT GuestNo, GuestName
+FROM Guest
+JOIN Booking ON Guest.GuestNo = Booking.GuestNo
+WHERE HotelNo = 1 AND DateFrom <= CURRENT_DATE AND DateTo >= CURRENT_DATE; -- Grosvenor Hotel
+
+
+6. List all double or family rooms with a price below £40.00 per night, in ascending order of
+price.
+SELECT RoomNo, Type, Price
+FROM Room
+WHERE Type IN ('Double', 'Family')
+AND Price < 40.00
+ORDER BY Price ASC;
+
+
+7. How many different guests have made bookings for August?
+SELECT COUNT(DISTINCT GuestNo) AS NumGuests
+FROM Booking
+WHERE DateFrom BETWEEN '2023-08-01' AND '2023-08-31';
+
+8. What is the total income from bookings for the Grosvenor Hotel today?
+SELECT SUM(Price) AS TotalIncome
+FROM Booking
+WHERE HotelNo = 1 AND DateFrom = CURRENT_DATE; -- Grosvenor Hotel
+
+
+9. What is the most commonly booked room type for each hotel in London?
+SELECT HotelNo, Mode(Type) AS MostCommonRoomType
+FROM Booking
+JOIN Hotel ON Booking.HotelNo = Hotel.HotelNo
+WHERE City = 'London'
+GROUP BY HotelNo;
+
+10. Update the price of all rooms by 5%.
+UPDATE Room
+SET Price = Price * 1.05;
+

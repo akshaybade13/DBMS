@@ -1,0 +1,66 @@
+6. The following tables form part of a database held in a relational DBMS:
+Hotel (HotelNo, Name, City)
+Room (RoomNo, HotelNo, Type, Price)
+Booking (HotelNo, GuestNo, DateFrom, DateTo, RoomNo)
+Guest (GuestNo, GuestName, GuestAddress)
+Solve following queries by SQL
+1. List full details of all hotels.
+SELECT * FROM Hotel;
+
+2. List full details of all hotels in London.
+SELECT * FROM Hotel
+WHERE City = 'London';
+
+3. List all guests currently staying at the Grosvenor Hotel.
+SELECT GuestNo, GuestName, GuestAddress
+FROM Guest
+JOIN Booking ON Guest.GuestNo = Booking.GuestNo
+WHERE HotelNo = 1 AND DateFrom <= CURRENT_DATE AND DateTo >= CURRENT_DATE; -- Grosvenor Hotel
+
+4. List the names and addresses of all guests in London, alphabetically ordered by name.
+SELECT GuestName, GuestAddress
+FROM Guest
+JOIN Booking ON Guest.GuestNo = Booking.GuestNo
+WHERE City = 'London'
+ORDER BY GuestName ASC;
+
+
+5. List the bookings for which no date_to has been specified.
+SELECT * FROM Booking
+WHERE DateTo IS NULL;
+
+6. How many hotels are there?
+SELECT COUNT(*) AS NumHotels FROM Hotel;
+
+7. List the rooms that are currently unoccupied at the Grosvenor Hotel.
+SELECT RoomNo
+FROM Room
+LEFT JOIN Booking ON Room.RoomNo = Booking.RoomNo
+WHERE HotelNo = 1 AND (DateFrom IS NULL OR DateTo < CURRENT_DATE); -- Grosvenor Hotel
+
+
+8. What is the lost income from unoccupied rooms at each hotel today?
+SELECT HotelNo, SUM(Price) AS LostIncome
+FROM Room
+LEFT JOIN Booking ON Room.RoomNo = Booking.RoomNo
+WHERE (DateFrom IS NULL OR DateTo < CURRENT_DATE)
+GROUP BY HotelNo;
+
+9. Create index on one of the field and show is performance in query.
+CREATE INDEX idx_booking_datefrom ON Booking (DateFrom);
+
+SELECT Booking.BookingNo, Booking.DateFrom, Booking.DateTo, Booking.RoomNo
+FROM Booking
+WHERE DateFrom BETWEEN '2023-11-01' AND '2023-11-30';
+
+This query will be faster with the index on DateFrom because the database can quickly find all bookings for dates between November 1st and 30th without having to scan the entire Booking table.
+
+10. Create one view on above database and query it.
+CREATE VIEW v_bookings_by_guest AS
+SELECT GuestNo, GuestName, SUM(Price) AS TotalSpent
+FROM Booking
+JOIN Guest ON Booking.GuestNo = Guest.GuestNo
+GROUP BY GuestNo, GuestName;
+
+SELECT * FROM v_bookings_by_guest;
+
